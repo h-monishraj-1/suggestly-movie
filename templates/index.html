@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Recommendation System</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Suggestly</h1>
+        <p>Type a movie name to get recommendations:</p>
+
+        <input type="text" id="movieInput" placeholder="Enter a movie title" oninput="fetchSuggestions()">
+        <div id="suggestions" style="border: 1px solid #ccc; max-height: 200px; overflow-y: auto; display: none;"></div>
+        
+        <button onclick="getMovieRecommendations()">Get Recommendations</button>
+        <div id="movieRecommendations"></div>
+    </div>
+
+    <script>
+        async function fetchSuggestions() {
+            const input = document.getElementById("movieInput").value;
+            const suggestionsDiv = document.getElementById("suggestions");
+            if (input.trim() === "") {
+                suggestionsDiv.style.display = "none";
+                return;
+            }
+
+            const response = await fetch(`/get_titles?q=${encodeURIComponent(input)}`);
+            const data = await response.json();
+
+            if (data.titles && data.titles.length > 0) {
+                suggestionsDiv.innerHTML = data.titles.map(title => 
+                    `<div onclick="selectSuggestion('${title}')">${title}</div>`
+                ).join('');
+                suggestionsDiv.style.display = "block";
+            } else {
+                suggestionsDiv.innerHTML = "<p>No suggestions found.</p>";
+                suggestionsDiv.style.display = "block";
+            }
+        }
+
+        function selectSuggestion(title) {
+            document.getElementById("movieInput").value = title;
+            document.getElementById("suggestions").style.display = "none";
+        }
+
+        async function getMovieRecommendations() {
+            const movieTitle = document.getElementById("movieInput").value;
+            const response = await fetch("/recommend_movies", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ movie_title: movieTitle })
+            });
+
+            const data = await response.json();
+            const recommendationsDiv = document.getElementById("movieRecommendations");
+
+            if (data.recommendations) {
+                recommendationsDiv.innerHTML = `<h2>Recommendations:</h2>
+                    <div class="recommendations-container">${
+                        data.recommendations.map(movie => `
+                            <div class="game-card">
+                                <img src="${movie.poster}" alt="${movie.title}" style="width: 150px; height: auto;">
+                                <p>${movie.title}</p>
+                            </div>
+                        `).join('')
+                    }</div>`;
+            } else {
+                recommendationsDiv.innerHTML = "<p>No recommendations found.</p>";
+            }
+        }
+    </script>
+</body>
+</html>
