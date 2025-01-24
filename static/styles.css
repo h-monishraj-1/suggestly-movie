@@ -117,8 +117,8 @@ button:hover {
 /* Hover effect on the current game card */
 .game-card:hover {
     transform: scale(1.1);
-    filter: grayscale(0); /* Removes grayscale */
-    z-index: 1; /* Ensures it appears above others */
+    filter: grayscale(0);
+    z-index: 1;
 }
 
 /* Graying out the other cards when one is hovered */
